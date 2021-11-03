@@ -1,0 +1,41 @@
+@font-face {
+    font-family: AngelciaProTitleBold;
+    src: url(../../assets/fonts/AngleciaProTitle-Bold.woff2);
+}
+
+@font-face {
+    font-family: Tochka;
+    src: url(../../assets/fonts/TT_Norms_Pro_Tochka_DemiBold.ttf);
+}
+
+* {
+    font-family: Tochka;
+
+}
+
+.head-text {
+    font-family: AngelciaProTitleBold;
+    font-size: 3em;
+    color: #1c1f23;
+}
+
+.bordered {
+    border: #1c1f23 solid 3px;
+}
+
+
+#wrapper{
+    position: relative;
+}
+
+.content{
+    position: relative;
+    z-index: 100;
+}
+
+.background{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -100;
+}
