@@ -20,8 +20,7 @@
       <div id="wrapper" class="mt-4">
 	<div class="row justify-content-center mb-3 background">
 	  <div class="col text-center">
-	    <img src="assets/main_first_screen.webp" width="50%">
-	    
+	    <img src="assets/main_first_screen.webp" width="40%" style="margin-top: 90px">
 	  </div>
 	</div>
 	
@@ -37,19 +36,57 @@
 
 	      <input type="text" class="form-control mb-2 bordered" placeholder="Ваше имя" id="name">
 	      <input type="text" class="form-control mb-2 bordered" placeholder="Ваша фамилия" id="surname">
-	      <input type="text" class="form-control mb-2 bordered" placeholder="Ваш адрес" id="address">
-	      <input type="text" class="form-control mb-2 bordered" placeholder="Ваш номер телефона" id="phone">
+	      <input type="tel" class="form-control mb-2 bordered" placeholder="Ваш номер телефона" id="phone">
+	      <input type="datetime-local" class="form-control mb-2 bordered" placeholder="Время встречи" id="time">
+	      <input type="text" class="form-control mb-2 bordered" placeholder="Место встречи" id="address">
 
 	      <button type="button" class="btn btn-lg btn-dark mt-3" id="scheduleMeetingBtn">Назначить встречу</button>
+	    </div>
+	  </div>
+	  <div class="row justify-content-center mt-3 mb-3" id="status" style="display: none">
+	    <div class="col-lg-4 text-center">
+	      <h2>Встреча назначена!</h2>
 	    </div>
 	  </div>
 	</div>
       </div>
     </div>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete" async defer></script> 
+
     <script>
+      function toTimestamp(strDate){
+	  var datum = Date.parse(strDate);
+	  return datum/1000;
+      }
+      
       $('#scheduleMeetingBtn').on('click', () => {
-	  
+	  var name = $('#name').val();
+	  var surname = $('#surname').val();
+	  var address = $('#address').val();
+	  var datetime = $('#time').val();
+	  var phone = $('#phone').val();
+	  var timestamp = toTimestamp(datetime);
+
+	  var formData = new FormData();
+
+	  formData.append('name', name);
+	  formData.append('surname', surname);
+	  formData.append('address', address);
+	  formData.append('time', timestamp);
+	  formData.append('phone', phone);
+
+	  $('#meeting-form').fadeOut(() => {
+	      fetch('http://127.0.0.1:8000/api/createmeeting', {
+		  method: 'POST',
+		  body: formData
+	      }).then(response => {
+		  $('#status').fadeIn();
+		  console.log(response.json())
+	      })
+	  });
+
       });
     </script>
   </body>
