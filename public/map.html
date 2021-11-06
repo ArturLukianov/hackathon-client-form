@@ -1,0 +1,165 @@
+<!doctype html>
+
+<html>
+  <head>
+    <title>Точка — банк для предпринимателей и предприятий</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.css' rel='stylesheet' />
+    <style>
+      
+      body { 
+          margin: 0; 
+          padding: 0; 
+      }
+      
+      #map { 
+          position: absolute; 
+          top: 0; 
+          bottom: 0;
+	  width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='map'></div>
+    <script src="assets/js/jquery-3.6.0.min.js"></script>
+
+    <script>
+      // The value for 'accessToken' begins with 'pk...'
+      mapboxgl.accessToken = 'pk.eyJ1IjoiYWxpY2Vicm93biIsImEiOiJja3ZtOG95MDQ5ZHZyMm5zNzkyMDhybjExIn0.Nl8MlRelh50fFIL8qcfRNg'; 
+      const map = new mapboxgl.Map({
+	  container: 'map',
+	  // Replace YOUR_STYLE_URL with your style URL.
+	  style: 'mapbox://styles/mapbox/streets-v11',
+	  center: [ 37.647971, 55.745463 ],
+	  zoom: 10.7
+      });
+
+      const colors = [
+	  '#f00',
+	  '#0f0',
+	  '#00f',
+	  '#ff0',
+	  '#f0f',
+	  '#0ff',
+	  '#a0f',
+	  '#af0',
+	  '#0af',
+	  '#fa0',
+	  '#f0a',
+	  '#0fa',
+	  '#ab0',
+	  '#eda',
+	  '#000'
+      ];
+
+      function getRandomInt(max) {
+	  return Math.floor(Math.random() * max);
+      }
+
+      map.on('load', () => {
+	  fetch("http://192.168.3.209:8000/api/getallmeetings")
+	      .then(response => response.json())
+	      .then(data => {
+		  var meetings = data.meetings;
+
+		  var points = [];
+		  var coordinates = []
+
+		  for(var key in meetings) {
+		      let color = colors[key];
+		      points = [];
+		      coordinates = [[ 37.647971, 55.745463 ]];
+		      for(var j = 0; j < meetings[key].length; j++) {
+			  points.push({
+			      type: 'Feature',
+			      properties: {},
+			      geometry: {
+				  type: 'Point',
+				  coordinates: [ meetings[key][j].longitude, meetings[key][j].latitude ]
+			      }
+			  });
+			  coordinates.push([ meetings[key][j].longitude, meetings[key][j].latitude ]);
+		      }
+		      var myPathStr = '';
+		      for(var i = 0; i < coordinates.length; i++) {
+			  myPathStr += coordinates[i][0] + ',' + coordinates[i][1];
+			  if (i != coordinates.length - 1)
+			      myPathStr += ';'
+		      }
+		      
+		      fetch(`https://api.mapbox.com/directions/v5/mapbox/cycling/${myPathStr}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`).then(response => response.json())
+			  .then(data => {
+			      console.log(data)
+			      map.addLayer({
+				  'id': 'route' + key + '-' + getRandomInt(1000000),
+				  'type': 'line',
+				  'source': {
+				      'type': 'geojson',
+				      'data': {
+					  'type': 'Feature',
+					  'properties': {},
+					  'geometry': {
+					      'type': 'LineString',
+					      'coordinates': data.routes[0].geometry.coordinates
+					  }
+				      }
+				  },
+				  'layout': {
+				      'line-join': 'round',
+				      'line-cap': 'round'
+				  },
+				  'paint': {
+				      'line-color': color,
+				      'line-width': 3
+				  }
+			      });
+			  })
+
+		      map.addLayer({
+			  id: 'points' + key,
+			  type: 'circle',
+			  source: {
+			      type: 'geojson',
+			      data: {
+				  type: 'FeatureCollection',
+				  features: points
+			      }
+			  },
+			  paint: {
+			      'circle-radius': 6,
+			      'circle-color': color
+			  }
+		      });
+		  }
+
+		  
+		  map.addLayer({
+		      id: 'startpoint',
+		      type: 'circle',
+		      source: {
+			  type: 'geojson',
+			  data: {
+			      type: 'Feature',
+			      properties: {},
+			      geometry: {
+				  type: 'Point',
+				  coordinates: [ 37.647971, 55.745463 ]
+			      }
+			  }
+		      },
+		      paint: {
+			  'circle-radius': 10,
+			  'circle-color': '#888'
+		      }
+		  });
+	      })
+      });
+
+
+      // Code from the next step will go here.
+    </script>
+  </body>
+</html>
